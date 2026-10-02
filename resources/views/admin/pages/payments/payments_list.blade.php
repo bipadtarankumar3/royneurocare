@@ -99,9 +99,19 @@
                     <label class="form-label small fw-bold mb-1">To Date</label>
                     <input type="date" name="to_date" class="form-control form-control-sm" value="{{ $to_date }}">
                 </div>
-                <div class="col-md-3 d-flex gap-2">
+                <div class="col-md-1">
+                    <label class="form-label small fw-bold mb-1">Per Page</label>
+                    <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
+                        <option value="10" {{ $per_page == 10 ? 'selected' : '' }}>10</option>
+                        <option value="15" {{ $per_page == 15 ? 'selected' : '' }}>15</option>
+                        <option value="25" {{ $per_page == 25 ? 'selected' : '' }}>25</option>
+                        <option value="50" {{ $per_page == 50 ? 'selected' : '' }}>50</option>
+                        <option value="100" {{ $per_page == 100 ? 'selected' : '' }}>100</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="mdi mdi-filter-variant me-1"></i> Filter</button>
-                    <a href="{{ url('admin/payments') }}" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-refresh"></i> Reset</a>
+                    <a href="{{ url('admin/payments') }}" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-refresh"></i></a>
                 </div>
             </form>
         </div>
@@ -110,7 +120,7 @@
     <!-- Payments Data Table -->
     <div class="card border-0 shadow-sm p-3">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="zero_config">
+            <table class="table table-hover align-middle mb-0" id="payments_table">
                 <thead class="table-light">
                     <tr>
                         <th style="width: 50px;">Sl</th>
@@ -126,7 +136,7 @@
                 <tbody>
                     @forelse ($orders as $key => $item)
                         <tr>
-                            <td>{{ $key + 1 }}</td>
+                            <td>{{ ($orders->currentPage() - 1) * $orders->perPage() + $key + 1 }}</td>
                             <td>
                                 <div class="fw-bold text-dark">{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</div>
                                 <small class="text-muted">{{ \Carbon\Carbon::parse($item->created_at)->format('h:i A') }}</small>
@@ -195,6 +205,16 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+
+        <!-- Server-Side Pagination Footer -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-3 border-top">
+            <div class="small text-muted">
+                Showing <strong>{{ $orders->firstItem() ?? 0 }}</strong> to <strong>{{ $orders->lastItem() ?? 0 }}</strong> of <strong>{{ $orders->total() }}</strong> transaction entries
+            </div>
+            <div>
+                {{ $orders->links() }}
+            </div>
         </div>
     </div>
 </div>

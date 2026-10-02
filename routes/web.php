@@ -47,5 +47,6 @@ Route::post('/generate-order', [WebViewController::class, 'generateOrder']);
 Route::post('/payment-success', [WebViewController::class, 'paymentSuccess']);
 Route::post('/payment-failed', [WebViewController::class, 'paymentFailed']);
 Route::get('/booking-success/{order_id}', [WebViewController::class, 'bookingSuccess']);
+Route::get('/booking-failed/{order_id}', [WebViewController::class, 'bookingFailed']);
 Route::get('/invoice/{id}', [WebViewController::class, 'show'])->name('invoice.show');
 

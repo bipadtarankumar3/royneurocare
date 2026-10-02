@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Appointment Booking Receipt - Roy Neuro Care</title>
+    <title>Payment Status - Roy Neuro Care</title>
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -32,13 +32,13 @@
         }
 
         .receipt-header {
-            background: linear-gradient(135deg, #183e66 0%, #b22d32 100%);
+            background: linear-gradient(135deg, #4a1518 0%, #dc3545 100%);
             color: #ffffff;
             padding: 30px;
             text-align: center;
         }
 
-        .success-badge {
+        .failed-badge {
             display: inline-flex;
             align-items: center;
             background: rgba(255, 255, 255, 0.2);
@@ -61,7 +61,7 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #183e66;
+            color: #721c24;
             border-bottom: 2px solid #edf2f7;
             padding-bottom: 8px;
             margin-bottom: 16px;
@@ -85,8 +85,8 @@
         }
 
         .amount-summary-box {
-            background-color: #f7fafc;
-            border: 1px solid #e2e8f0;
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
             border-radius: 12px;
             padding: 20px;
             margin-top: 20px;
@@ -95,7 +95,7 @@
         .total-amount-highlight {
             font-size: 22px;
             font-weight: 700;
-            color: #28a745;
+            color: #e53e3e;
         }
 
         .action-buttons {
@@ -125,13 +125,13 @@
         }
 
         .guideline-alert {
-            background-color: #fff9db;
-            border: 1px solid #ffe066;
-            border-left: 4px solid #f59f00;
+            background-color: #fff5f5;
+            border: 1px solid #fed7d7;
+            border-left: 4px solid #e53e3e;
             border-radius: 8px;
             padding: 14px 18px;
             font-size: 13px;
-            color: #664d03;
+            color: #742a2a;
             margin-top: 20px;
         }
 
@@ -156,20 +156,20 @@
 <div class="receipt-container">
     <!-- Receipt Header -->
     <div class="receipt-header">
-        <div class="success-badge">
-            <i class="fa-solid fa-circle-check text-warning me-2"></i> Payment Successful & Confirmed
+        <div class="failed-badge">
+            <i class="fa-solid fa-circle-xmark me-2"></i> Payment Not Completed
         </div>
-        <h2 class="fw-bold mb-1">Appointment Receipt</h2>
+        <h2 class="fw-bold mb-1">Transaction Status Receipt</h2>
         <p class="mb-0 opacity-75 small">Roy Neuro Care - A Complete Brain & Spine Centre</p>
     </div>
 
     <!-- Receipt Body -->
     <div class="receipt-body">
         <div class="row g-4">
-            <!-- Patient & Appointment Info -->
+            <!-- Patient & Appointment Attempt Info -->
             <div class="col-md-6">
                 <div class="receipt-section-title">
-                    <i class="fa-solid fa-user-doctor me-2"></i> Appointment Details
+                    <i class="fa-solid fa-user me-2"></i> Booking Attempt Info
                 </div>
                 <table class="table info-table mb-0">
                     <tr>
@@ -181,42 +181,36 @@
                         <td class="info-value">{{ ($order && $order->mobile_no) ? $order->mobile_no : 'N/A' }}</td>
                     </tr>
                     <tr>
-                        <td class="info-label">Appointment Date:</td>
-                        <td class="info-value text-primary">
+                        <td class="info-label">Selected Date:</td>
+                        <td class="info-value">
                             {{ ($order && $order->booking_date) ? \Carbon\Carbon::parse($order->booking_date)->format('l, d F Y') : 'N/A' }}
                         </td>
                     </tr>
                     <tr>
-                        <td class="info-label">Time Slot:</td>
+                        <td class="info-label">Selected Slot:</td>
                         <td class="info-value">
                             @if ($order && $order->from_time && $order->to_time)
                                 {{ \Carbon\Carbon::parse($order->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($order->to_time)->format('h:i A') }}
                             @elseif ($order && $order->time_slot_id)
                                 Slot #{{ $order->time_slot_id }}
                             @else
-                                Confirmed
+                                N/A
                             @endif
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">Gender / Age:</td>
-                        <td class="info-value">
-                            {{ ($order && $order->sex) ? $order->sex : 'N/A' }} / {{ ($order && $order->age) ? $order->age . ' Years' : 'N/A' }}
                         </td>
                     </tr>
                 </table>
             </div>
 
-            <!-- Transaction & Payment Info -->
+            <!-- Transaction Info -->
             <div class="col-md-6">
                 <div class="receipt-section-title">
                     <i class="fa-solid fa-receipt me-2"></i> Transaction Details
                 </div>
                 <table class="table info-table mb-0">
                     <tr>
-                        <td class="info-label">Transaction Status:</td>
-                        <td class="info-value text-success">
-                            <span class="badge bg-success">PAID</span>
+                        <td class="info-label">Payment Status:</td>
+                        <td class="info-value text-danger">
+                            <span class="badge bg-danger">{{ strtoupper(($order && $order->payment_status) ? $order->payment_status : 'FAILED / CANCELLED') }}</span>
                         </td>
                     </tr>
                     <tr>
@@ -224,69 +218,51 @@
                         <td class="info-value text-break small">{{ ($order && $order->transaction_id) ? $order->transaction_id : $order_id }}</td>
                     </tr>
                     <tr>
-                        <td class="info-label">Payment ID:</td>
-                        <td class="info-value text-break small">{{ ($order && $order->razorpay_payment_id) ? $order->razorpay_payment_id : 'Online Payment' }}</td>
+                        <td class="info-label">Gateway:</td>
+                        <td class="info-value">Razorpay Online Gateway</td>
                     </tr>
                     <tr>
-                        <td class="info-label">Payment Gateway:</td>
-                        <td class="info-value">Razorpay Secure</td>
-                    </tr>
-                    <tr>
-                        <td class="info-label">Payment Date:</td>
+                        <td class="info-label">Attempt Date:</td>
                         <td class="info-value">{{ ($order && $order->created_at) ? \Carbon\Carbon::parse($order->created_at)->format('d M Y, h:i A') : \Carbon\Carbon::now()->format('d M Y, h:i A') }}</td>
                     </tr>
                 </table>
             </div>
         </div>
 
-        <!-- Amount Breakdown Box -->
+        <!-- Amount Box -->
         <div class="amount-summary-box">
             <div class="row align-items-center">
                 <div class="col-md-7">
-                    <div class="d-flex justify-content-between mb-1 small text-muted">
-                        <span>Consultation Booking Fee:</span>
-                        <span class="fw-semibold text-dark">₹ {{ number_format(($order && $order->actual_amount) ? $order->actual_amount : 700, 2) }}</span>
-                    </div>
-                    @if ($order && $order->total_amount > $order->actual_amount)
-                    <div class="d-flex justify-content-between small text-muted">
-                        <span>Platform & Processing Charge:</span>
-                        <span class="fw-semibold text-dark">+ ₹ {{ number_format($order->total_amount - $order->actual_amount, 2) }}</span>
-                    </div>
-                    @endif
+                    <span class="d-block fw-semibold text-danger">Amount Not Debited / Transaction Incomplete</span>
+                    <small class="text-muted">If money was deducted from your account, it will automatically be refunded by your bank within 3-5 working days.</small>
                 </div>
                 <div class="col-md-5 text-md-end mt-3 mt-md-0 border-top border-md-top-0 pt-2 pt-md-0">
-                    <span class="d-block small text-muted text-uppercase fw-bold">Total Paid</span>
+                    <span class="d-block small text-muted text-uppercase fw-bold">Attempted Amount</span>
                     <span class="total-amount-highlight">₹ {{ number_format(($order && $order->total_amount) ? $order->total_amount : 740, 2) }}</span>
                 </div>
             </div>
         </div>
 
-        <!-- Patient Instructions -->
+        <!-- Support Info -->
         <div class="guideline-alert">
-            <i class="fa-solid fa-circle-info text-warning me-1"></i>
-            <strong>Important Patient Guidelines:</strong>
-            <ul class="mb-0 mt-1 ps-3">
-                <li>Please arrive at the clinic at least 15 minutes prior to your allocated time slot.</li>
-                <li>Carry this receipt (printed or digital copy on your phone) along with previous medical reports/prescriptions.</li>
-                <li>Clinic Address: Ground Floor, Balaji Bhawan, Cheshire Home Road, Bariatu, Ranchi.</li>
-            </ul>
+            <i class="fa-solid fa-triangle-exclamation text-danger me-1"></i>
+            <strong>Need Assistance with Booking?</strong>
+            <p class="mb-0 mt-1">If you experienced an error or payment issue, you can retry booking your slot or reach out directly to the clinic at <strong>+91-96317 75097</strong>.</p>
         </div>
     </div>
 
     <!-- Action Buttons -->
     <div class="action-buttons">
         <a href="{{ url('/') }}" class="btn btn-outline-secondary">
-            <i class="fa-solid fa-house me-1"></i> Back to Home
+            <i class="fa-solid fa-house me-1"></i> Home
         </a>
         <div class="d-flex gap-2">
-            @if ($order)
-            <a href="{{ url('invoice/' . $order->id) }}" target="_blank" class="btn btn-outline-primary">
-                <i class="fa-solid fa-file-invoice me-1"></i> Full Invoice
-            </a>
-            @endif
-            <button onclick="window.print()" class="btn btn-brand">
-                <i class="fa-solid fa-download me-1"></i> Download / Print Receipt
+            <button onclick="window.print()" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-download me-1"></i> Download Receipt
             </button>
+            <a href="{{ url('/') }}" class="btn btn-brand">
+                <i class="fa-solid fa-rotate-right me-1"></i> Try Booking Again
+            </a>
         </div>
     </div>
 </div>

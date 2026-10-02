@@ -318,7 +318,7 @@ class WebViewController extends Controller
                 ]);
             }
 
-            Order::create([
+            $order = Order::create([
                 'patient_id' => $patient ? $patient->id : null,
                 'actual_amount' => $request->actual_amount,
                 'total_amount' => $request->amount,
@@ -329,42 +329,111 @@ class WebViewController extends Controller
                 'time_slot_id' => $request->time_slot_id
             ]);
 
-            return response()->json(['success' => true]);
+            return response()->json([
+                'success' => true,
+                'order_id' => $request->razorpay_order_id ?? $order->id
+            ]);
         } catch (\Exception $e) {
             \Log::error('Payment failed handling error: ' . $e->getMessage());
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
-    public function bookingSuccess($order_id){
-        $data['title'] = 'pediatric';
-        $data['order_id'] = $order_id;
-        return view('web.pages.bookingSuccess',$data);
-    }
-
-
-
-    public function show($id)
+    public function bookingSuccess($order_id)
     {
-        $order = DB::table('orders')
-            ->join('patients', 'orders.patient_id', '=', 'patients.id')
+        $order = Order::leftJoin('patients', 'orders.patient_id', '=', 'patients.id')
             ->leftJoin('time_slots', 'orders.time_slot_id', '=', 'time_slots.id')
             ->select(
                 'orders.*',
                 'patients.first_name',
                 'patients.last_name',
                 'patients.mobile_no',
+                'patients.alternate_mobile_no',
+                'patients.address',
+                'patients.patient_problem',
+                'patients.age',
+                'patients.sex',
                 'time_slots.from_time',
-                'time_slots.to_time',
+                'time_slots.to_time'
             )
-            ->where('orders.id', $id)
+            ->where(function ($q) use ($order_id) {
+                $q->where('orders.transaction_id', $order_id)
+                  ->orWhere('orders.id', $order_id)
+                  ->orWhere('orders.razorpay_payment_id', $order_id);
+            })
+            ->latest('orders.id')
+            ->first();
+
+        $data['title'] = 'Booking Receipt - Success';
+        $data['order_id'] = $order_id;
+        $data['order'] = $order;
+        $data['setting'] = Setting::first();
+
+        return view('web.pages.bookingSuccess', $data);
+    }
+
+    public function bookingFailed($order_id)
+    {
+        $order = Order::leftJoin('patients', 'orders.patient_id', '=', 'patients.id')
+            ->leftJoin('time_slots', 'orders.time_slot_id', '=', 'time_slots.id')
+            ->select(
+                'orders.*',
+                'patients.first_name',
+                'patients.last_name',
+                'patients.mobile_no',
+                'patients.alternate_mobile_no',
+                'patients.address',
+                'patients.patient_problem',
+                'patients.age',
+                'patients.sex',
+                'time_slots.from_time',
+                'time_slots.to_time'
+            )
+            ->where(function ($q) use ($order_id) {
+                $q->where('orders.transaction_id', $order_id)
+                  ->orWhere('orders.id', $order_id)
+                  ->orWhere('orders.razorpay_payment_id', $order_id);
+            })
+            ->latest('orders.id')
+            ->first();
+
+        $data['title'] = 'Payment Status - Cancelled/Failed';
+        $data['order_id'] = $order_id;
+        $data['order'] = $order;
+        $data['setting'] = Setting::first();
+
+        return view('web.pages.bookingFailed', $data);
+    }
+
+    public function show($id)
+    {
+        $order = DB::table('orders')
+            ->leftJoin('patients', 'orders.patient_id', '=', 'patients.id')
+            ->leftJoin('time_slots', 'orders.time_slot_id', '=', 'time_slots.id')
+            ->select(
+                'orders.*',
+                'patients.first_name',
+                'patients.last_name',
+                'patients.mobile_no',
+                'patients.alternate_mobile_no',
+                'patients.address',
+                'patients.patient_problem',
+                'time_slots.from_time',
+                'time_slots.to_time'
+            )
+            ->where(function ($q) use ($id) {
+                $q->where('orders.id', $id)
+                  ->orWhere('orders.transaction_id', $id)
+                  ->orWhere('orders.razorpay_payment_id', $id);
+            })
             ->first();
 
         if (!$order) {
             abort(404);
         }
 
-        return view('web.pages.invoice.show', compact('order'));
-    }
+        $setting = Setting::first();
 
+        return view('web.pages.invoice.show', compact('order', 'setting'));
+    }
 }

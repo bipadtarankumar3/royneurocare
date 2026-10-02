@@ -503,6 +503,21 @@ function payWithRazorpay(e) {
                                     booking_date: bookingDate,
                                     time_slot_id: timeSlotId,
                                     status: "cancelled"
+                                },
+                                success: function() {
+                                    Swal.fire({
+                                        icon: 'info',
+                                        title: 'Payment Cancelled',
+                                        text: 'Your payment was not completed. Would you like to view/download the transaction receipt or try again?',
+                                        showCancelButton: true,
+                                        confirmButtonColor: '#b22d32',
+                                        confirmButtonText: '<i class="fa-solid fa-receipt me-1"></i> View/Download Receipt',
+                                        cancelButtonText: 'Try Again'
+                                    }).then((result) => {
+                                        if (result.isConfirmed) {
+                                            window.location.href = "{{ url('booking-failed/') }}/" + response.order_id;
+                                        }
+                                    });
                                 }
                             });
                         }
