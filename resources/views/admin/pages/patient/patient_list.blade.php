@@ -49,9 +49,12 @@
               <div class="tab-content" id="myTabContent">
                 <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
                     <div class="table-responsive text-nowrap">
-                        <table class="table"  id="todayTable">
+                        <table class="table" id="todayTable">
                             <thead>
                                 <tr>
+                                    <th style="width: 30px;" class="text-center">
+                                        <input type="checkbox" class="form-check-input select-all-table" style="cursor: pointer; width: 18px; height: 18px;" title="Select All">
+                                    </th>
                                     <th>Sl</th>
                                     <th>Date</th>
                                     <th>Time</th>
@@ -86,6 +89,9 @@
                                         }
                                     @endphp
                                 <tr>
+                                    <td class="text-center">
+                                        <input type="checkbox" class="form-check-input row-select-checkbox" value="{{ $order->id }}" style="cursor: pointer; width: 18px; height: 18px;">
+                                    </td>
                                     <td>{{ $key + 1 }}</td>
                                     <td>{{ \Carbon\Carbon::parse($order->booking_date)->format('d/m/Y') }} </td>
                                     <td><span class="badge {{ $timeClass }}">{{ $order->from_time }} - {{ $order->to_time }}</span></td>
@@ -139,9 +145,12 @@
                 </div>
                 <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
                     <div class="table-responsive text-nowrap">
-                        <table class="table"  id="tomorrowTable">
+                        <table class="table" id="tomorrowTable">
                             <thead>
                                 <tr>
+                                    <th style="width: 30px;" class="text-center">
+                                        <input type="checkbox" class="form-check-input select-all-table" style="cursor: pointer; width: 18px; height: 18px;" title="Select All">
+                                    </th>
                                     <th>Sl</th>
                                     <th>Date</th>
                                     <th>Time</th>
@@ -178,6 +187,9 @@
 
 
                                     <tr>
+                                            <td class="text-center">
+                                                <input type="checkbox" class="form-check-input row-select-checkbox" value="{{ $order->id }}" style="cursor: pointer; width: 18px; height: 18px;">
+                                            </td>
                                             <td>{{ $key + 1 }}</td>
                                             <td>{{ \Carbon\Carbon::parse($order->booking_date)->format('d/m/Y') }}</td>
                                             <td>
@@ -234,9 +246,12 @@
                 </div>
                 <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">
                     <div class="table-responsive text-nowrap">
-                        <table class="table"  id="yesterdayTable">
+                        <table class="table" id="yesterdayTable">
                             <thead>
                                 <tr>
+                                    <th style="width: 30px;" class="text-center">
+                                        <input type="checkbox" class="form-check-input select-all-table" style="cursor: pointer; width: 18px; height: 18px;" title="Select All">
+                                    </th>
                                     <th>Sl</th>
                                     <th>Date</th>
                                     <th>Time</th>
@@ -272,9 +287,12 @@
                                     @endphp
 
                                     <tr>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="form-check-input row-select-checkbox" value="{{ $order->id }}" style="cursor: pointer; width: 18px; height: 18px;">
+                                        </td>
                                         <td>{{ $key + 1 }}</td>
                                         <td>{{ \Carbon\Carbon::parse($order->booking_date)->format('d/m/Y') }}</td>
-                                        <td><span class="badge {{ $timeClass }}">{{ $order->from_time }} - {{ $order->to_time }}</span>
+                                        <td><span class="badge {{ $timeClass }}">{{ $order->from_time }} - {{ $order->to_time }}</span></td>
                                         
                                             <td>{{ $order->first_name }}</td>
                                             <td>{{ $order->last_name }}</td>
@@ -331,35 +349,126 @@
 @endsection
 
 @section('js')
-
-
 <script>
     $(document).ready(function () {
-    $('#todayTable, #tomorrowTable, #yesterdayTable').DataTable({
-        dom: 'Bfrtip',
-        buttons: [
-            {
-                extend: 'csvHtml5',
-                text: 'Export CSV',
-                className: 'btn btn-sm btn-primary',
-                title: 'Appointment Data',
-                exportOptions: {
-                    columns: ':visible'
+        const tables = ['#todayTable', '#tomorrowTable', '#yesterdayTable'];
+        
+        tables.forEach(function(tableId) {
+            var dt = $(tableId).DataTable({
+                pageLength: 10,
+                lengthMenu: [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+                columnDefs: [
+                    { orderable: false, targets: [0, -1] },
+                    { searchable: false, targets: [0, -1] }
+                ],
+                dom: '<"d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2"<"d-flex align-items-center gap-2"B><"d-flex align-items-center gap-2"lf>>rt<"d-flex justify-content-between align-items-center mt-3 flex-wrap"<"text-muted small"i><"pagination-sm"p>>',
+                buttons: [
+                    {
+                        extend: 'csvHtml5',
+                        text: '<i class="mdi mdi-file-delimited-outline me-1"></i> Export CSV',
+                        className: 'btn btn-sm btn-primary export-csv-btn',
+                        title: function() {
+                            return $(tableId).attr('id') + '_patients_' + new Date().toISOString().slice(0,10);
+                        },
+                        exportOptions: {
+                            columns: function(idx, data, node) {
+                                var total = $(node).closest('tr').children().length;
+                                return idx > 0 && idx < total - 1; // skip checkbox and actions
+                            },
+                            rows: function (idx, data, node) {
+                                var $table = $(node).closest('table');
+                                var checked = $table.find('.row-select-checkbox:checked');
+                                if (checked.length > 0) {
+                                    return $(node).find('.row-select-checkbox').is(':checked');
+                                }
+                                return true; // if none checked, export all
+                            }
+                        }
+                    },
+                    {
+                        extend: 'excelHtml5',
+                        text: '<i class="mdi mdi-file-excel-outline me-1"></i> Export Excel',
+                        className: 'btn btn-sm btn-success export-excel-btn',
+                        title: function() {
+                            return $(tableId).attr('id') + '_patients_' + new Date().toISOString().slice(0,10);
+                        },
+                        exportOptions: {
+                            columns: function(idx, data, node) {
+                                var total = $(node).closest('tr').children().length;
+                                return idx > 0 && idx < total - 1;
+                            },
+                            rows: function (idx, data, node) {
+                                var $table = $(node).closest('table');
+                                var checked = $table.find('.row-select-checkbox:checked');
+                                if (checked.length > 0) {
+                                    return $(node).find('.row-select-checkbox').is(':checked');
+                                }
+                                return true;
+                            }
+                        }
+                    }
+                ],
+                language: {
+                    search: "_INPUT_",
+                    searchPlaceholder: "Search records...",
+                    lengthMenu: "Show _MENU_ entries",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    paginate: {
+                        previous: "<i class='mdi mdi-chevron-left'></i>",
+                        next: "<i class='mdi mdi-chevron-right'></i>"
+                    }
                 }
+            });
+
+            // Select All Checkbox Handler
+            $(tableId).on('change', '.select-all-table', function() {
+                var isChecked = $(this).prop('checked');
+                $(tableId).find('.row-select-checkbox').prop('checked', isChecked);
+                updateSelectionState(tableId);
+            });
+
+            // Individual Checkbox Handler
+            $(tableId).on('change', '.row-select-checkbox', function() {
+                var totalRows = $(tableId).find('.row-select-checkbox').length;
+                var checkedRows = $(tableId).find('.row-select-checkbox:checked').length;
+                var selectAll = $(tableId).find('.select-all-table');
+                
+                if (checkedRows === 0) {
+                    selectAll.prop('checked', false).prop('indeterminate', false);
+                } else if (checkedRows === totalRows) {
+                    selectAll.prop('checked', true).prop('indeterminate', false);
+                } else {
+                    selectAll.prop('checked', false).prop('indeterminate', true);
+                }
+                updateSelectionState(tableId);
+            });
+        });
+
+        function updateSelectionState(tableId) {
+            var checkedCount = $(tableId).find('.row-select-checkbox:checked').length;
+            var tabPane = $(tableId).closest('.tab-pane');
+            var csvBtn = tabPane.find('.export-csv-btn');
+            var excelBtn = tabPane.find('.export-excel-btn');
+            if (checkedCount > 0) {
+                csvBtn.html('<i class="mdi mdi-file-delimited-outline me-1"></i> Export Selected CSV (' + checkedCount + ')');
+                excelBtn.html('<i class="mdi mdi-file-excel-outline me-1"></i> Export Selected Excel (' + checkedCount + ')');
+            } else {
+                csvBtn.html('<i class="mdi mdi-file-delimited-outline me-1"></i> Export CSV (All)');
+                excelBtn.html('<i class="mdi mdi-file-excel-outline me-1"></i> Export Excel (All)');
             }
-        ]
+        }
+
+        // Adjust column widths on tab switch
+        $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function () {
+            $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+        });
     });
-});
 
-
-</script>
-<script>
     function deleteConfirmation(event, id) {
-    event.preventDefault();
-    if (confirm('Are you sure you want to delete this record?')) {
-        window.location.href = '{{ url('admin/patient_history/delete') }}/' + id;
+        event.preventDefault();
+        if (confirm('Are you sure you want to delete this record?')) {
+            window.location.href = '{{ url('admin/patient_history/delete') }}/' + id;
+        }
     }
-}
-
 </script>
 @endsection
