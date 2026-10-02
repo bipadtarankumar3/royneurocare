@@ -10,12 +10,42 @@
 
 <style>
     .term_and_condition_box {
-        max-height: 130px;
+        max-height: 280px;
         overflow-y: auto;
-        padding: 10px;
-        border: 1px solid #ccc;
-        background-color: #fff;
-        transition: background-color 0.3s ease;
+        padding: 16px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        background-color: #fcfcfc;
+        color: #333333;
+        font-size: 14px;
+        line-height: 1.8;
+    }
+
+    .terms-notice-banner {
+        background-color: #fff4f4;
+        border: 1px solid #f5c2c7;
+        border-left: 5px solid #b22d32;
+        padding: 12px 16px;
+        border-radius: 6px;
+        color: #842029;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+
+    .terms-modal-header {
+        background: linear-gradient(135deg, #183e66 0%, #b22d32 100%);
+        color: #ffffff;
+        padding: 16px 20px;
+        border-top-left-radius: calc(0.3rem - 1px);
+        border-top-right-radius: calc(0.3rem - 1px);
+    }
+
+    .terms-acceptance-box {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        padding: 12px 16px;
+        margin-top: 15px;
     }
 
     .pay-button-container {
@@ -157,39 +187,46 @@
                     </div>
                     
                     <!-- Terms & Conditions Modal -->
-                    <div class="modal fade" id="termsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                        <div class="modal-dialog  modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="termsModalLabel">Terms & Conditions</h5>
-                                    {{-- <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button> --}}
+                    <div class="modal fade" id="termsModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-centered">
+                            <div class="modal-content shadow-lg border-0">
+                                <div class="modal-header terms-modal-header d-flex align-items-center">
+                                    <h5 class="modal-title fw-bold text-white mb-0" id="termsModalLabel">
+                                        <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Mandatory Notice: Terms & Conditions
+                                    </h5>
                                 </div>
-                                <div class="modal-body">
-                                    <p>{{ isset($setting) ? $setting->payment_terms_and_condition : 'No terms available.' }}</p>
+                                <div class="modal-body p-4">
+                                    <div class="terms-notice-banner d-flex align-items-center">
+                                        <i class="fa-solid fa-circle-exclamation text-danger fs-4 me-3"></i>
+                                        <div>
+                                            <strong>Important Notice:</strong> You must read, understand, and accept all clinic guidelines and terms before you can fill up the patient details and book an appointment.
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="term_and_condition_box">
+                                        {!! nl2br(e(isset($setting) && !empty($setting->payment_terms_and_condition) ? $setting->payment_terms_and_condition : "1. Consultation fees are non-refundable once the appointment booking is confirmed.\n2. Patients are requested to arrive at the clinic 15 minutes before the allocated time slot.\n3. Please bring previous prescriptions, lab reports, MRI/CT scans, and relevant medical history documents.\n4. Providing accurate patient contact and identification details is mandatory for medical record compliance.")) !!}
+                                    </div>
+
+                                    <div class="terms-acceptance-box">
+                                        <div class="form-check d-flex align-items-center">
+                                            <input class="form-check-input me-2" type="checkbox" id="modalTermsCheckbox" style="transform: scale(1.25); cursor: pointer;">
+                                            <label class="form-check-label fw-bold text-dark" for="modalTermsCheckbox" style="cursor: pointer; user-select: none;">
+                                                I have read, understood, and solemnly agree to all the Terms & Conditions and Clinic Policies stated above.
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Accept</button>
+                                <div class="modal-footer bg-light px-4 py-3 d-flex justify-content-between">
+                                    <a href="{{ url('/') }}" class="btn btn-outline-secondary">
+                                        <i class="fa-solid fa-arrow-left me-1"></i> Decline & Go Back
+                                    </a>
+                                    <button type="button" class="btn btn-danger px-4" id="modalAcceptBtn" disabled style="background-color: #b22d32; border-color: #b22d32;">
+                                        <i class="fa-solid fa-check me-1"></i> Accept & Proceed to Form
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <script>
-                        document.getElementById("terms").addEventListener("change", function() {
-                            const payButton = document.getElementById("pay-button");
-                            const termsError = document.getElementById("terms-error");
-                            
-                            if (this.checked) {
-                                payButton.removeAttribute("disabled");
-                                termsError.classList.add("d-none");
-                                $('#termsModal').modal('show');
-                            } else {
-                                payButton.setAttribute("disabled", "true");
-                                termsError.classList.remove("d-none");
-                                $('#termsModal').modal('hide');
-                            }
-                        });
-                    </script>
                 </div>
             </div>
         </div>
@@ -200,37 +237,65 @@
 @section('js')
 
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    const termsBox = document.querySelector(".term_and_condition_box");
-    const payButtonContainer = document.querySelector(".pay-button-container");
-    const payButton = document.getElementById("pay-button");
-    const termsCheckbox = document.getElementById("terms");
-
-    // if (!termsBox || !payButtonContainer  || !termsCheckbox) {
-    //     console.error("Some required elements are missing from the page.");
-    //     return;
-    // }
-
-    // Enable Pay button only when Terms checkbox is checked
-    termsCheckbox.addEventListener("change", function () {
-        if (this.checked) {
-            payButton.disabled = false;
-            payButtonContainer.style.display = "block";
-        } else {
-            payButton.disabled = true;
-            payButtonContainer.style.display = "none";
-        }
-    });
-
- 
-});
-
 $(document).ready(function () {
+    // Show Terms & Conditions modal immediately on page load
+    const termsModalEl = document.getElementById('termsModal');
+    let termsModal = null;
+    if (termsModalEl) {
+        termsModal = new bootstrap.Modal(termsModalEl, {
+            backdrop: 'static',
+            keyboard: false
+        });
+        termsModal.show();
+    }
 
-// Allow only numbers in mobile fields
-$("input[name='mobile'], input[name='alternate_mobile']").on("input", function () {
-    this.value = this.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
-});
+    const modalTermsCheckbox = document.getElementById("modalTermsCheckbox");
+    const modalAcceptBtn = document.getElementById("modalAcceptBtn");
+    const termsCheckbox = document.getElementById("terms");
+    const payButton = document.getElementById("pay-button");
+    const termsError = document.getElementById("terms-error");
+
+    // Modal checkbox toggle enables/disables accept button
+    if (modalTermsCheckbox && modalAcceptBtn) {
+        modalTermsCheckbox.addEventListener("change", function () {
+            modalAcceptBtn.disabled = !this.checked;
+        });
+    }
+
+    // Modal Accept Button click - accepts terms, enables form, checks billing checkbox
+    if (modalAcceptBtn) {
+        modalAcceptBtn.addEventListener("click", function () {
+            if (modalTermsCheckbox && modalTermsCheckbox.checked) {
+                if (termsCheckbox) termsCheckbox.checked = true;
+                if (payButton) payButton.disabled = false;
+                if (termsError) termsError.classList.add("d-none");
+                if (termsModal) termsModal.hide();
+                $("input[name='first_name']").focus();
+            }
+        });
+    }
+
+    // Billing card terms checkbox toggle
+    if (termsCheckbox) {
+        termsCheckbox.addEventListener("change", function () {
+            if (this.checked) {
+                if (payButton) payButton.disabled = false;
+                if (termsError) termsError.classList.add("d-none");
+                if (modalTermsCheckbox) modalTermsCheckbox.checked = true;
+                if (modalAcceptBtn) modalAcceptBtn.disabled = false;
+            } else {
+                if (payButton) payButton.disabled = true;
+                if (termsError) termsError.classList.remove("d-none");
+                if (modalTermsCheckbox) modalTermsCheckbox.checked = false;
+                if (modalAcceptBtn) modalAcceptBtn.disabled = true;
+            }
+        });
+    }
+
+    // Allow only numbers in mobile fields
+    $("input[name='mobile_no'], input[name='alternate_mobile_no']").on("input", function () {
+        this.value = this.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
+    });
 
 // Auto-calculate age when DOB is selected
 $("input[name='dob']").on("change", function () {
