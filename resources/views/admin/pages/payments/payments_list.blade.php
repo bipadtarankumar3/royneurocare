@@ -77,11 +77,7 @@
     <div class="card border-0 shadow-sm mb-4">
         <div class="card-body p-3">
             <form action="{{ url('admin/payments') }}" method="GET" class="row g-2 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label small fw-bold mb-1">Search Keyword</label>
-                    <input type="text" name="search" class="form-control form-control-sm" placeholder="Patient name, mobile, order/pay ID..." value="{{ $search }}">
-                </div>
-                <div class="col-md-2">
+                <div class="col-md-4">
                     <label class="form-label small fw-bold mb-1">Payment Status</label>
                     <select name="status" class="form-select form-select-sm">
                         <option value="all" {{ $selected_status == 'all' ? 'selected' : '' }}>All Statuses</option>
@@ -91,36 +87,26 @@
                         <option value="pending" {{ $selected_status == 'pending' ? 'selected' : '' }}>Pending</option>
                     </select>
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="form-label small fw-bold mb-1">From Date</label>
                     <input type="date" name="from_date" class="form-control form-control-sm" value="{{ $from_date }}">
                 </div>
-                <div class="col-md-2">
+                <div class="col-md-3">
                     <label class="form-label small fw-bold mb-1">To Date</label>
                     <input type="date" name="to_date" class="form-control form-control-sm" value="{{ $to_date }}">
                 </div>
-                <div class="col-md-1">
-                    <label class="form-label small fw-bold mb-1">Per Page</label>
-                    <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()">
-                        <option value="10" {{ $per_page == 10 ? 'selected' : '' }}>10</option>
-                        <option value="15" {{ $per_page == 15 ? 'selected' : '' }}>15</option>
-                        <option value="25" {{ $per_page == 25 ? 'selected' : '' }}>25</option>
-                        <option value="50" {{ $per_page == 50 ? 'selected' : '' }}>50</option>
-                        <option value="100" {{ $per_page == 100 ? 'selected' : '' }}>100</option>
-                    </select>
-                </div>
                 <div class="col-md-2 d-flex gap-2">
                     <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="mdi mdi-filter-variant me-1"></i> Filter</button>
-                    <a href="{{ url('admin/payments') }}" class="btn btn-outline-secondary btn-sm"><i class="mdi mdi-refresh"></i></a>
+                    <a href="{{ url('admin/payments') }}" class="btn btn-outline-secondary btn-sm" title="Reset Filters"><i class="mdi mdi-refresh"></i></a>
                 </div>
             </form>
         </div>
     </div>
 
     <!-- Payments Data Table -->
-    <div class="card border-0 shadow-sm p-3">
+    <div class="card border-0 shadow-sm p-4">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="payments_table">
+            <table class="table table-hover align-middle mb-0 w-100" id="payments_table">
                 <thead class="table-light">
                     <tr>
                         <th style="width: 50px;">Sl</th>
@@ -130,13 +116,13 @@
                         <th>Amount</th>
                         <th>Razorpay Details</th>
                         <th>Status</th>
-                        <th class="text-center" style="width: 130px;">Action</th>
+                        <th class="text-center" style="width: 120px;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($orders as $key => $item)
+                    @foreach ($orders as $key => $item)
                         <tr>
-                            <td>{{ ($orders->currentPage() - 1) * $orders->perPage() + $key + 1 }}</td>
+                            <td>{{ $key + 1 }}</td>
                             <td>
                                 <div class="fw-bold text-dark">{{ \Carbon\Carbon::parse($item->created_at)->format('d M Y') }}</div>
                                 <small class="text-muted">{{ \Carbon\Carbon::parse($item->created_at)->format('h:i A') }}</small>
@@ -195,26 +181,9 @@
                                 </div>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-5">
-                                <i class="mdi mdi-database-off mdi-36px d-block mb-2 text-muted"></i>
-                                No payment logs found matching the selected criteria.
-                            </td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
-        </div>
-
-        <!-- Server-Side Pagination Footer -->
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-3 border-top">
-            <div class="small text-muted">
-                Showing <strong>{{ $orders->firstItem() ?? 0 }}</strong> to <strong>{{ $orders->lastItem() ?? 0 }}</strong> of <strong>{{ $orders->total() }}</strong> transaction entries
-            </div>
-            <div>
-                {{ $orders->links() }}
-            </div>
         </div>
     </div>
 </div>
@@ -242,6 +211,24 @@
 
 @section('js')
 <script>
+    $(document).ready(function() {
+        $('#payments_table').DataTable({
+            "pageLength": 10,
+            "lengthMenu": [ [10, 25, 50, 100, -1], [10, 25, 50, 100, "All"] ],
+            "order": [[0, "asc"]],
+            "responsive": true,
+            "language": {
+                "search": "_INPUT_",
+                "searchPlaceholder": "Search logs...",
+                "lengthMenu": "Show _MENU_ entries per page",
+                "paginate": {
+                    "previous": "<i class='mdi mdi-chevron-left'></i>",
+                    "next": "<i class='mdi mdi-chevron-right'></i>"
+                }
+            }
+        });
+    });
+
     function showLogDetails(order) {
         let statusBadge = '';
         if (order.payment_status === 'success') {

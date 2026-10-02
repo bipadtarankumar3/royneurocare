@@ -68,10 +68,8 @@ class PaymentController extends Controller
         $data['failed_count'] = Order::whereIn('payment_status', ['cancelled', 'failed'])->count();
         $data['total_revenue'] = Order::where('payment_status', 'success')->sum('total_amount');
 
-        // Server-Side Pagination
-        $perPage = $request->input('per_page', 15);
-        $data['orders'] = $query->orderBy('orders.id', 'DESC')->paginate($perPage)->appends($request->query());
-        $data['per_page'] = $perPage;
+        // Fetch all matching orders for DataTable
+        $data['orders'] = $query->orderBy('orders.id', 'DESC')->get();
 
         // Pass filter values
         $data['selected_status'] = $request->status ?? 'all';
