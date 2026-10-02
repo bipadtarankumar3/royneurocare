@@ -50,3 +50,7 @@ Route::get('/booking-success/{order_id}', [WebViewController::class, 'bookingSuc
 Route::get('/booking-failed/{order_id}', [WebViewController::class, 'bookingFailed']);
 Route::get('/invoice/{id}', [WebViewController::class, 'show'])->name('invoice.show');
 
+// Public Notice API endpoint aliases
+Route::get('/notice-api', [\App\Http\Controllers\api\NoticeController::class, 'getNotice']);
+Route::get('/get-notice', [\App\Http\Controllers\api\NoticeController::class, 'getNotice']);
+

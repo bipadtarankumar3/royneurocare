@@ -29,6 +29,7 @@ class SettingController extends Controller
             'pay_amount' => $request->pay_amount,
             'pay_additional_amount' => $request->pay_additional_amount,
             'payment_terms_and_condition' => $request->payment_terms_and_condition,
+            'frontend_notice' => $request->frontend_notice,
             'pay_key' => $request->pay_key,
             'pay_secret_key' => $request->pay_secret_key,
             'clinic_phone_number' => $request->clinic_phone_number,

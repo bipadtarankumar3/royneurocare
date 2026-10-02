@@ -107,7 +107,7 @@
                                     
                                     <td>{{ $order->total_amount }}</td>
                                     <td>#{{ $order->transaction_id }}</td>
-                                    <td>{{ \Carbon\Carbon::parse($order->payment_date)->format('d/m/Y') }}</td>
+                                    <td>{{ $order->created_at ? \Carbon\Carbon::parse($order->created_at)->format('d/m/Y') : 'N/A' }}</td>
                                     <td>
                                         @php
                                             $statusClass = match(strtolower($order->status)) {
@@ -209,7 +209,7 @@
                                             
                                             <td>{{ $order->total_amount }}</td>
                                             <td>#{{ $order->transaction_id }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($order->payment_date)->format('d/m/Y') }}</td>
+                                            <td>{{ $order->created_at ? \Carbon\Carbon::parse($order->created_at)->format('d/m/Y') : 'N/A' }}</td>
                                             <td>
                                                 @php
                                                     $statusClass = match(strtolower($order->status)) {
@@ -306,7 +306,7 @@
                                            
                                             <td>{{ $order->total_amount }}</td>
                                             <td>#{{ $order->transaction_id }}</td>
-                                            <td>{{ \Carbon\Carbon::parse($order->payment_date)->format('d/m/Y') }}</td>
+                                            <td>{{ $order->created_at ? \Carbon\Carbon::parse($order->created_at)->format('d/m/Y') : 'N/A' }}</td>
                                             <td>
                                                 @php
                                                     $statusClass = match(strtolower($order->status)) {

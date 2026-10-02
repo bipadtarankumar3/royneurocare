@@ -253,9 +253,24 @@ class WebViewController extends Controller
 
             DB::commit();
 
+            $Setting = Setting::first();
+            $timeSlot = TimeSlot::find($order->time_slot_id);
+
+            // Send Booking Notification Email to Clinic Admin (wrapped in try-catch so mail issues never block booking response)
+            try {
+                $adminUser = \App\Models\User::first();
+                $adminEmail = $adminUser ? $adminUser->email : 'admin@gmail.com';
+                
+                if ($adminEmail && filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+                    $mailable = new \App\Mail\BookingConfirmationMail($order, $patient, $timeSlot, $Setting);
+                    \Illuminate\Support\Facades\Mail::to($adminEmail)->send($mailable);
+                }
+            } catch (\Exception $mailEx) {
+                \Log::warning('Booking confirmation email error: ' . $mailEx->getMessage());
+            }
+
             // Send WhatsApp alerts (wrapped in try-catch so network issues never block booking)
             try {
-                $Setting = Setting::first();
                 $patient_mobile = $request->mobile_no;
                 $admin_mobile = $Setting ? $Setting->clinic_phone_number : null;
 

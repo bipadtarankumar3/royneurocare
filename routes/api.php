@@ -10,6 +10,8 @@ use App\Http\Controllers\api\MasterController;
 use App\Http\Controllers\api\TransportRoadwaysController;
 use App\Http\Controllers\api\MapController;
 
+use App\Http\Controllers\api\NoticeController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -21,6 +23,11 @@ use App\Http\Controllers\api\MapController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+
+// Public Frontend Notice API
+Route::get('/notice', [NoticeController::class, 'getNotice']);
+Route::get('/frontend-notice', [NoticeController::class, 'getNotice']);
+Route::get('/public/notice', [NoticeController::class, 'getNotice']);
 
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
