@@ -80,49 +80,111 @@ class AdminAuthController extends Controller
 
 
     public function dashboard(){
-
-        $data['client']=User::where('user_type','client')->count();
-        $data['new_user']=User::where('status','pending')->count();
-
-        $data['patient_list']=Patient::whereDate('created_at',date('Y-m-d'))->get();
         $today = Carbon::today();
+        $tomorrow = Carbon::tomorrow();
 
-        // Fetch orders for each date
+        $data['patient'] = Patient::count();
+        $data['today_patient'] = Patient::whereDate('created_at', $today)->count();
+
+        $data['booking'] = Order::count();
+        $data['today_booking'] = Order::whereDate('booking_date', $today)->count();
+        $data['tomorrow_booking'] = Order::whereDate('booking_date', $tomorrow)->count();
+
+        $data['total_payments'] = Order::where('status', 'confirmed')->sum('total_amount');
+        $data['today_total_payments'] = Order::whereDate('booking_date', $today)->where('status', 'confirmed')->sum('total_amount');
+
+        $data['cancelled_booking'] = Order::where('status', 'cancelled')->count();
+        $data['today_cancelled_booking'] = Order::whereDate('booking_date', $today)->where('status', 'cancelled')->count();
+
+        $data['pending_booking'] = Order::where('status', 'pending')->count();
+        $data['confirmed_booking'] = Order::where('status', 'confirmed')->count();
+
+        // Fetch today's orders
         $data['today_orders'] = Order::join('patients', 'patients.id', '=', 'orders.patient_id')
-        ->join('time_slots', 'time_slots.id', '=', 'orders.time_slot_id')
-        ->select('orders.*', 'patients.first_name as patient_name', 'time_slots.from_time', 'time_slots.to_time')
-        ->whereDate('booking_date', $today)->get();
+            ->leftJoin('time_slots', 'time_slots.id', '=', 'orders.time_slot_id')
+            ->select(
+                'orders.*', 
+                'patients.first_name', 
+                'patients.last_name', 
+                'patients.mobile_no', 
+                'patients.customer_email', 
+                'patients.patient_problem', 
+                'patients.sex',
+                'patients.age',
+                'time_slots.from_time', 
+                'time_slots.to_time'
+            )
+            ->whereDate('orders.booking_date', $today)
+            ->orderBy('orders.id', 'desc')
+            ->get();
 
-        $data['patient']=Patient::count();
-        $data['booking']=Order::count();
+        // Fetch recent orders
+        $data['recent_orders'] = Order::join('patients', 'patients.id', '=', 'orders.patient_id')
+            ->leftJoin('time_slots', 'time_slots.id', '=', 'orders.time_slot_id')
+            ->select(
+                'orders.*', 
+                'patients.first_name', 
+                'patients.last_name', 
+                'patients.mobile_no', 
+                'patients.customer_email', 
+                'patients.patient_problem', 
+                'patients.sex',
+                'patients.age',
+                'time_slots.from_time', 
+                'time_slots.to_time'
+            )
+            ->orderBy('orders.id', 'desc')
+            ->limit(8)
+            ->get();
 
-        $data['cancelled_booking_lists']=Order::join('patients', 'patients.id', '=', 'orders.patient_id')
-        ->join('time_slots', 'time_slots.id', '=', 'orders.time_slot_id')
-        ->select('orders.*', 'patients.first_name as patient_name', 'time_slots.from_time', 'time_slots.to_time')
-        ->where('orders.status','cancelled')
-        ->orderBy('orders.id','desc')
-        ->limit(10)
-        ->get();
+        // Fetch cancelled bookings
+        $data['cancelled_booking_lists'] = Order::join('patients', 'patients.id', '=', 'orders.patient_id')
+            ->leftJoin('time_slots', 'time_slots.id', '=', 'orders.time_slot_id')
+            ->select(
+                'orders.*', 
+                'patients.first_name', 
+                'patients.last_name', 
+                'patients.mobile_no', 
+                'patients.patient_problem', 
+                'time_slots.from_time', 
+                'time_slots.to_time'
+            )
+            ->where('orders.status', 'cancelled')
+            ->orderBy('orders.id', 'desc')
+            ->limit(6)
+            ->get();
 
-        $data['cancelled_booking']=Order::where('status','cancelled')->count();
-        $data['total_payments']=Order::where('status','confirmed')->sum('total_amount');
+        // Weekly Chart Data (Last 7 Days)
+        $chartLabels = [];
+        $chartBookings = [];
+        $chartRevenue = [];
+        $chartCancelled = [];
 
-        $data['today_patient']=Patient::whereDate('created_at',date('Y-m-d'))->count();
-        $data['today_booking']=Order::whereDate('booking_date',date('Y-m-d'))->count();
-        $data['today_total_payments']=Order::whereDate('booking_date',date('Y-m-d'))->where('status','confirmed')->sum('total_amount');
-        $data['today_cancelled_booking']=Order::whereDate('booking_date',date('Y-m-d'))->where('status','cancelled')->count();
+        for ($i = 6; $i >= 0; $i--) {
+            $day = Carbon::today()->subDays($i);
+            $dayStr = $day->format('Y-m-d');
+            $chartLabels[] = $day->format('D (d M)');
 
+            $chartBookings[] = Order::whereDate('booking_date', $dayStr)->where('status', 'confirmed')->count();
+            $chartRevenue[] = (float) Order::whereDate('booking_date', $dayStr)->where('status', 'confirmed')->sum('total_amount');
+            $chartCancelled[] = Order::whereDate('booking_date', $dayStr)->where('status', 'cancelled')->count();
+        }
 
-        // $data['CheckInCheckout']=CheckInCheckout::where('ckn_in_out_status','in')->where('ckn_date',date('Y-m-d'))->count();
-        // $data['CheckInCheckoutList']=CheckInCheckout::
-        // select('check_in_checkouts.*','users.name','users.phone','users.email')
-        // ->join('users','users.id','=','check_in_checkouts.ckn_user_id')
-        // ->where('ckn_in_out_status','in')
-        
-        // ->where('ckn_date',date('Y-m-d'))
-        // ->get();
+        $data['chart_labels'] = json_encode($chartLabels);
+        $data['chart_bookings'] = json_encode($chartBookings);
+        $data['chart_revenue'] = json_encode($chartRevenue);
+        $data['chart_cancelled'] = json_encode($chartCancelled);
 
-        return view('admin.pages.dashboard.dashboard',$data);
+        // Status breakdown data for donut chart
+        $data['chart_status_data'] = json_encode([
+            $data['confirmed_booking'],
+            $data['pending_booking'],
+            $data['cancelled_booking'],
+        ]);
+
+        $data['setting'] = \DB::table('settings')->first();
+
+        return view('admin.pages.dashboard.dashboard', $data);
     }
     public function profile(){
         return view('admin.auth.profile');
