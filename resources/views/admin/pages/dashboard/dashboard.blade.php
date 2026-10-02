@@ -280,7 +280,7 @@
           </div>
           <div class="d-flex align-items-center justify-content-between pt-2 border-top">
             <span class="stat-badge badge-soft-success">
-              <i class="mdi mdi-currency-inr"></i> ₹{{ number_format($today_total_payments, 2) }} Today
+              <i class="mdi mdi-arrow-up-bold"></i> ₹{{ number_format($today_total_payments, 2) }} Today
             </span>
             <a href="{{ url('admin/payments') }}" class="text-muted text-decoration-none small fw-medium">Logs <i class="mdi mdi-chevron-right"></i></a>
           </div>

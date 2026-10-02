@@ -235,6 +235,7 @@ class WebViewController extends Controller
                 'age' => $request->age,
                 'mobile_no' => $request->mobile_no,
                 'alternate_mobile_no' => $request->alternate_mobile_no,
+                'customer_email' => $request->customer_email ?? null,
                 'address' => $request->address,
                 'patient_problem' => $request->patient_problem,
             ]);
@@ -256,14 +257,25 @@ class WebViewController extends Controller
             $Setting = Setting::first();
             $timeSlot = TimeSlot::find($order->time_slot_id);
 
-            // Send Booking Notification Email to Clinic Admin (wrapped in try-catch so mail issues never block booking response)
+            // Send Booking Notification Email to Clinic (wrapped in try-catch so mail issues never block booking response)
             try {
                 $adminUser = \App\Models\User::first();
-                $adminEmail = $adminUser ? $adminUser->email : 'admin@gmail.com';
-                
-                if ($adminEmail && filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+                $recipients = array_filter(array_unique([
+                    'info@royneurocare.com',
+                    $adminUser ? $adminUser->email : null,
+                    env('MAIL_FROM_ADDRESS')
+                ]), function($email) {
+                    return !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
+                });
+
+                if (!empty($recipients)) {
                     $mailable = new \App\Mail\BookingConfirmationMail($order, $patient, $timeSlot, $Setting);
-                    \Illuminate\Support\Facades\Mail::to($adminEmail)->send($mailable);
+                    \Illuminate\Support\Facades\Mail::to($recipients)->send($mailable);
+                }
+
+                // If patient provided email address, send them a confirmation copy too
+                if (!empty($patient->customer_email) && filter_var($patient->customer_email, FILTER_VALIDATE_EMAIL)) {
+                    \Illuminate\Support\Facades\Mail::to($patient->customer_email)->send(new \App\Mail\BookingConfirmationMail($order, $patient, $timeSlot, $Setting));
                 }
             } catch (\Exception $mailEx) {
                 \Log::warning('Booking confirmation email error: ' . $mailEx->getMessage());
@@ -328,6 +340,7 @@ class WebViewController extends Controller
                     'age' => $request->age,
                     'mobile_no' => $request->mobile_no,
                     'alternate_mobile_no' => $request->alternate_mobile_no,
+                    'customer_email' => $request->customer_email ?? null,
                     'address' => $request->address,
                     'patient_problem' => $request->patient_problem,
                 ]);
