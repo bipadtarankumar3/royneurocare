@@ -405,8 +405,12 @@ function payWithRazorpay(e) {
         return;
     }
 
+    let payBtn = $("#pay-button");
+    let originalBtnText = payBtn.html();
+    payBtn.prop("disabled", true).html('<span class="spinner-border spinner-border-sm me-2" role="status"></span>Processing...');
+
     $.ajax({
-        url: "{{ url('generate-order') }}", // Backend route for order creation
+        url: "{{ url('generate-order') }}",
         type: "POST",
         data: {
             _token: "{{ csrf_token() }}",
@@ -414,16 +418,17 @@ function payWithRazorpay(e) {
         },
         success: function(response) {
             if (response.success) {
+                let fullName = (first_name + " " + (last_name || "")).trim();
                 let options = {
-                    "key": "{{ isset($setting) ? $setting->pay_key : '' }}", // Razorpay Key from .env
-                    "amount": response.amount, // Amount in paise
+                    "key": "{{ isset($setting) && !empty($setting->pay_key) ? $setting->pay_key : env('RAZORPAY_KEY') }}",
+                    "amount": response.amount,
                     "currency": "INR",
-                    "name": "Appointment Booking",
-                    "description": "Payment for appointment booking",
-                    "image": "{{ URL::to('public/assets/web/logo.png') }}",
-                    "order_id": response.order_id, // Order ID from Razorpay
+                    "name": "Roy Neuro Care",
+                    "description": "Appointment Booking Consultation Fee",
+                    "image": "{{ URL::to('public/assets/web/logo/favicon-32x32.png') }}",
+                    "order_id": response.order_id,
                     "handler": function(paymentResponse) {
-                        // Payment Success
+                        payBtn.html('<span class="spinner-border spinner-border-sm me-2" role="status"></span>Finalizing Booking...');
                         $.ajax({
                             url: "{{ url('payment-success') }}",
                             type: "POST",
@@ -449,25 +454,35 @@ function payWithRazorpay(e) {
                             },
                             success: function(data) {
                                 if (data.success) {
-                                    // Payment successful, redirect to success page
                                     window.location.href = "{{ url('booking-success/') }}/" + response.order_id;
+                                } else {
+                                    payBtn.prop("disabled", false).html(originalBtnText);
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Booking Error',
+                                        text: data.message || 'Payment was received but recording failed. Please contact clinic support.'
+                                    });
                                 }
                             }
-                        }).fail(function() {
-                            alert("Something went wrong. Please try again.");
+                        }).fail(function(xhr) {
+                            payBtn.prop("disabled", false).html(originalBtnText);
+                            Swal.fire({
+                                icon: 'warning',
+                                title: 'Attention',
+                                text: 'Your payment was processed. If your confirmation does not load, please contact the clinic with Order ID: ' + response.order_id
+                            });
                         });
                     },
                     "prefill": {
-                        "name": name,
-                        "email": email,
+                        "name": fullName,
                         "contact": mobile_no
                     },
                     "theme": {
-                        "color": "#3399cc"
+                        "color": "#b22d32"
                     },
                     "modal": {
                         "ondismiss": function() {
-                            // Payment Cancelled
+                            payBtn.prop("disabled", false).html(originalBtnText);
                             $.ajax({
                                 url: "{{ url('payment-failed') }}",
                                 type: "POST",
@@ -475,7 +490,7 @@ function payWithRazorpay(e) {
                                     _token: "{{ csrf_token() }}",
                                     order_id: response.order_id,
                                     first_name: first_name,
-                                last_name: last_name,
+                                    last_name: last_name,
                                     dob: dob,
                                     sex: sex,
                                     age: age,
@@ -488,9 +503,6 @@ function payWithRazorpay(e) {
                                     booking_date: bookingDate,
                                     time_slot_id: timeSlotId,
                                     status: "cancelled"
-                                },
-                                success: function(data) {
-                                    alert("Payment was cancelled.");
                                 }
                             });
                         }
@@ -500,14 +512,28 @@ function payWithRazorpay(e) {
                 let rzp1 = new Razorpay(options);
                 rzp1.open();
             } else {
-                alert("Something went wrong. Please try again.");
+                payBtn.prop("disabled", false).html(originalBtnText);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Payment Gateway Error',
+                    text: response.message || 'Unable to connect to payment gateway. Please try again.'
+                });
             }
+        },
+        error: function(xhr) {
+            payBtn.prop("disabled", false).html(originalBtnText);
+            let errMsg = 'Failed to initiate payment. Please check your internet connection or try again.';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                errMsg = xhr.responseJSON.message;
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Gateway Error',
+                text: errMsg
+            });
         }
     });
 }
-
-
-
 </script>
 
 @endsection

@@ -184,45 +184,49 @@ class WebViewController extends Controller
         return response()->json($slots);
     }
 
-    // Handle Razorpay payment
+    // Handle Razorpay payment order creation
     public function generateOrder(Request $request)
     {
+        try {
+            $Setting = Setting::first();
+            $key = $Setting && !empty($Setting->pay_key) ? $Setting->pay_key : env('RAZORPAY_KEY');
+            $secret = $Setting && !empty($Setting->pay_secret_key) ? $Setting->pay_secret_key : env('RAZORPAY_SECRET');
 
-        $Setting = Setting::first();
-        if ($Setting) {
-             $api = new Api($Setting->pay_key, $Setting->pay_secret_key);
-        } else {
-             $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+            if (empty($key) || empty($secret)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Payment gateway keys are not configured in settings.'
+                ], 400);
+            }
+
+            $api = new Api($key, $secret);
+            
+            $order = $api->order->create([
+                'receipt' => 'order_' . uniqid(),
+                'amount' => round($request->amount * 100), // Convert to paise
+                'currency' => 'INR',
+                'payment_capture' => 1
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'order_id' => $order['id'],
+                'amount' => $order['amount']
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Razorpay generateOrder error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to initialize payment gateway: ' . $e->getMessage()
+            ], 500);
         }
-        
-        $order = $api->order->create([
-            'receipt' => 'order_' . uniqid(),
-            'amount' => $request->amount * 100, // Convert to paise
-            'currency' => 'INR',
-            'payment_capture' => 1
-        ]);
-
-        return response()->json([
-            'success' => true,
-            'order_id' => $order['id'],
-            'amount' => $order['amount']
-        ]);
     }
 
     public function paymentSuccess(Request $request)
     {
+        try {
+            DB::beginTransaction();
 
-        $patient = Patient::where('mobile_no', $request->mobile_no)->first();
-
-        $Setting = Setting::first();
-
-        $patient_mobile = $request->mobile_no;
-        $admin_mobile = $Setting->clinic_phone_number;
-
-        $patient_id = '';
-        // if ($patient) {
-        //     $patient_id = $patient->id;
-        // }else{
             $patient = Patient::create([
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
@@ -234,84 +238,102 @@ class WebViewController extends Controller
                 'address' => $request->address,
                 'patient_problem' => $request->patient_problem,
             ]);
-            $patient_id = $patient->id;
-        // }
 
-        $order = Order::create([
-            'patient_id' => $patient_id,
-            'actual_amount' => $request->actual_amount,
-            'total_amount' => $request->amount,
-            'razorpay_payment_id' => $request->razorpay_payment_id,
-            'transaction_id' => $request->razorpay_order_id,
-            'payment_status' => 'success',
-            'status' => 'pending',
-            'booking_date' => $request->booking_date,
-            'time_slot_id' => $request->time_slot_id
-        ]);
+            $order = Order::create([
+                'patient_id' => $patient->id,
+                'actual_amount' => $request->actual_amount,
+                'total_amount' => $request->amount,
+                'razorpay_payment_id' => $request->razorpay_payment_id,
+                'transaction_id' => $request->razorpay_order_id,
+                'payment_status' => 'success',
+                'status' => 'confirmed',
+                'booking_date' => $request->booking_date,
+                'time_slot_id' => $request->time_slot_id
+            ]);
 
-               // Construct invoice URL (adjust domain/path as per your app's structure)
-               $invoiceUrl = url("/invoice/{$order->id}");
+            DB::commit();
 
-               // Base WhatsApp URL
-               $baseUrl = "https://app.digitalvyapari.online/api/WhatsApp";
-               $authKey = "RGdQK296NTcyQ2Jyd0NEbEJlbWNiUT09";
-       
-               // Send message to patient
-               Http::get($baseUrl, [
-                   'authkey' => $authKey,
-                   'template_name' => 'booking_alert',
-                   'wa_number' => '919341284362',
-                   'mobile' => '91' . $patient_mobile,
-                   'web_url_1' => $invoiceUrl
-               ]);
-       
-               // Send message to clinic/admin
-               Http::get($baseUrl, [
-                   'authkey' => $authKey,
-                   'template_name' => 'booking_alert',
-                   'wa_number' => '919341284362',
-                   'mobile' => '91' . $admin_mobile,
-                   'web_url_1' => $invoiceUrl
-               ]);
+            // Send WhatsApp alerts (wrapped in try-catch so network issues never block booking)
+            try {
+                $Setting = Setting::first();
+                $patient_mobile = $request->mobile_no;
+                $admin_mobile = $Setting ? $Setting->clinic_phone_number : null;
 
-        return response()->json(['success' => true]);
+                $invoiceUrl = url("/invoice/{$order->id}");
+                $baseUrl = "https://app.digitalvyapari.online/api/WhatsApp";
+                $authKey = "RGdQK296NTcyQ2Jyd0NEbEJlbWNiUT09";
+
+                if ($patient_mobile) {
+                    Http::timeout(5)->get($baseUrl, [
+                        'authkey' => $authKey,
+                        'template_name' => 'booking_alert',
+                        'wa_number' => '919341284362',
+                        'mobile' => '91' . $patient_mobile,
+                        'web_url_1' => $invoiceUrl
+                    ]);
+                }
+
+                if ($admin_mobile) {
+                    Http::timeout(5)->get($baseUrl, [
+                        'authkey' => $authKey,
+                        'template_name' => 'booking_alert',
+                        'wa_number' => '919341284362',
+                        'mobile' => '91' . $admin_mobile,
+                        'web_url_1' => $invoiceUrl
+                    ]);
+                }
+            } catch (\Exception $waEx) {
+                \Log::warning('WhatsApp booking alert error: ' . $waEx->getMessage());
+            }
+
+            return response()->json([
+                'success' => true,
+                'order_id' => $order->id
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Payment success handling error: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to record booking: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function paymentFailed(Request $request)
     {
+        try {
+            $patient = null;
+            if ($request->first_name || $request->mobile_no) {
+                $patient = Patient::create([
+                    'first_name' => $request->first_name ?? 'Guest',
+                    'last_name' => $request->last_name,
+                    'dob' => $request->dob,
+                    'sex' => $request->sex,
+                    'age' => $request->age,
+                    'mobile_no' => $request->mobile_no,
+                    'alternate_mobile_no' => $request->alternate_mobile_no,
+                    'address' => $request->address,
+                    'patient_problem' => $request->patient_problem,
+                ]);
+            }
 
-        $patient = Patient::where('mobile_no', $request->mobile_no)->first();
-        $patient_id = '';
-        if ($patient) {
-            $patient_id = $patient->id;
-        }else{
-            $patient = Patient::create([
-                'first_name' => $request->first_name,
-                'last_name' => $request->last_name,
-                'dob' => $request->dob,
-                'sex' => $request->sex,
-                'age' => $request->age,
-                'mobile_no' => $request->mobile_no,
-                'alternate_mobile_no' => $request->alternate_mobile_no,
-                'address' => $request->address,
-                'patient_problem' => $request->patient_problem,
+            Order::create([
+                'patient_id' => $patient ? $patient->id : null,
+                'actual_amount' => $request->actual_amount,
+                'total_amount' => $request->amount,
+                'transaction_id' => $request->razorpay_order_id,
+                'payment_status' => 'cancelled',
+                'status' => 'cancelled',
+                'booking_date' => $request->booking_date,
+                'time_slot_id' => $request->time_slot_id
             ]);
-            $patient_id = $patient->id;
+
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            \Log::error('Payment failed handling error: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
-
-        Order::create([
-            'patient_id' => $patient_id,
-            'actual_amount' => $request->actual_amount,
-            'total_amount' => $request->amount,
-            'transaction_id' => $request->razorpay_order_id,
-            'payment_status' => 'cancelled',
-            'status' => 'cancelled',
-            'booking_date' => $request->booking_date,
-            'time_slot_id' => $request->time_slot_id
-        ]);
-
-
-        return response()->json(['success' => true]);
     }
 
     public function bookingSuccess($order_id){

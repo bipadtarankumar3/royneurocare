@@ -37,12 +37,12 @@
         <span class="menu-title">Unavailability </span>
       </a>
     </li>
-    {{-- <li class="nav-item">
+    <li class="nav-item">
       <a class="nav-link" href="{{URL::To('admin/payments')}}">
-        <i class="menu-icon mdi mdi-card-text-outline"></i>
-        <span class="menu-title">Payments</span>
+        <i class="menu-icon mdi mdi-credit-card-outline"></i>
+        <span class="menu-title">Payment Logs</span>
       </a>
-    </li> --}}
+    </li>
     {{-- <li class="nav-item">
       <a class="nav-link" href="{{URL::To('admin/user')}}">
         <i class="menu-icon mdi mdi-account-circle-outline"></i>
