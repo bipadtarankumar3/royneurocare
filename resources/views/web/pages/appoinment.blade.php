@@ -91,6 +91,136 @@
     color: #d9534f;
 }
 
+/* Modern Announcement Marquee */
+.modern-notice-marquee {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #fff7f7 0%, #fff1f2 100%);
+    border: 1px solid #fecdd3;
+    border-left: 5px solid #b22d32;
+    border-radius: 10px;
+    padding: 7px 14px;
+    box-shadow: 0 4px 14px rgba(178, 45, 50, 0.07);
+    overflow: hidden;
+    position: relative;
+}
+
+.notice-badge {
+    display: inline-flex;
+    align-items: center;
+    background: linear-gradient(135deg, #b22d32 0%, #8f1e22 100%);
+    color: #ffffff;
+    font-size: 12.5px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 6px;
+    white-space: nowrap;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(178, 45, 50, 0.25);
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+.notice-pulse {
+    width: 8px;
+    height: 8px;
+    background-color: #4ade80;
+    border-radius: 50%;
+    margin-right: 8px;
+    display: inline-block;
+    box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+    animation: noticePulse 1.8s infinite;
+}
+
+@keyframes noticePulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(74, 222, 128, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(74, 222, 128, 0);
+    }
+}
+
+.notice-track {
+    flex: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    padding-left: 15px;
+    mask-image: linear-gradient(to right, transparent, black 15px, black 95%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 15px, black 95%, transparent);
+}
+
+.notice-scroll {
+    display: inline-block;
+    white-space: nowrap;
+    font-size: 14.5px;
+    font-weight: 600;
+    color: #1e293b;
+    padding-left: 100%;
+    animation: noticeMarqueeScroll 28s linear infinite;
+}
+
+.notice-track:hover .notice-scroll {
+    animation-play-state: paused;
+}
+
+@keyframes noticeMarqueeScroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
+
+.notice-divider {
+    margin: 0 16px;
+    color: #b22d32;
+    font-size: 16px;
+    vertical-align: middle;
+}
+
+.notice-link {
+    color: #b22d32;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    transition: color 0.2s ease;
+}
+
+.notice-link:hover {
+    color: #183e66;
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .modern-notice-marquee {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 8px 10px;
+    }
+    .notice-badge {
+        margin-bottom: 6px;
+        font-size: 11px;
+        padding: 4px 10px;
+    }
+    .notice-track {
+        width: 100%;
+        padding-left: 0;
+    }
+    .notice-scroll {
+        font-size: 13px;
+        animation-duration: 22s;
+    }
+}
+
 </style>
 
 @endsection
@@ -108,6 +238,28 @@
 
 @section('content')
 <div class="container">
+
+    <!-- Modern Notice Marquee -->
+    <div class="modern-notice-marquee mt-4 mb-3">
+        <div class="notice-badge">
+            <span class="notice-pulse"></span>
+            <i class="fa-solid fa-bullhorn me-1"></i> Important Notice
+        </div>
+        <div class="notice-track" title="Hover to pause">
+            <div class="notice-scroll">
+                @if(isset($setting) && !empty($setting->frontend_notice))
+                    <span>{{ $setting->frontend_notice }}</span>
+                    <span class="notice-divider">&bull;</span>
+                @endif
+                <span>For any payment-related issues, please contact our helpline at <a href="tel:+919631775097" class="notice-link"><i class="fa-solid fa-phone me-1"></i>+91-9631775097</a> or email us at <a href="mailto:royneurocare@gmail.com" class="notice-link"><i class="fa-solid fa-envelope me-1"></i>royneurocare@gmail.com</a></span>
+                <span class="notice-divider">&bull;</span>
+                <span>Roy Neuro Care &bull; Complete Brain & Spine Centre, Bariatu, Ranchi</span>
+                <span class="notice-divider">&bull;</span>
+                <span>For any payment-related issues, please contact our helpline at <a href="tel:+919631775097" class="notice-link"><i class="fa-solid fa-phone me-1"></i>+91-9631775097</a> or email us at <a href="mailto:royneurocare@gmail.com" class="notice-link"><i class="fa-solid fa-envelope me-1"></i>royneurocare@gmail.com</a></span>
+            </div>
+        </div>
+    </div>
+
     <div id="step-1">
 
         @if (isset($setting) && $setting->payment_permission_status == 'yes') 
