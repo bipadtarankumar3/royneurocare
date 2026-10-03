@@ -192,7 +192,7 @@
                             <div class="modal-content shadow-lg border-0">
                                 <div class="modal-header terms-modal-header d-flex align-items-center">
                                     <h5 class="modal-title fw-bold text-white mb-0" id="termsModalLabel">
-                                        <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Mandatory Notice: Terms & Conditions
+                                        <i class="fa-solid fa-triangle-exclamation text-warning me-2"></i> Terms & Conditions
                                     </h5>
                                 </div>
                                 <div class="modal-body p-4">

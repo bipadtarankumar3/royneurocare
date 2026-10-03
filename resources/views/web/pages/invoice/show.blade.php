@@ -116,7 +116,13 @@
         <!-- Header -->
         <div class="invoice-header d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>
-                <img src="{{ URL::to('public/assets/web/logo.png') }}" alt="Roy Neuro Care Logo" onerror="this.src='{{ URL::to('public/assets/web/homeimage/logo.png') }}'">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="{{ URL::to('public/assets/web/logo.png') }}" alt="Roy Neuro Care Logo" onerror="this.src='{{ URL::to('public/assets/web/homeimage/logo.png') }}'">
+                    <div>
+                        <h4 class="fw-bold mb-0" style="color: #183e66; font-size: 1.4rem;">Roy Neuro Care</h4>
+                        <div class="text-muted small" style="font-size: 0.82rem; font-weight: 500;">A Complete Brain & Spine Centre</div>
+                    </div>
+                </div>
                 <div class="mt-2 small text-muted">
                     Ground Floor, Balaji Bhawan, Cheshire Home Road, Bariatu, Ranchi<br>
                     Phone: +91-96317 75097 | Email: royneuro@gmail.com
