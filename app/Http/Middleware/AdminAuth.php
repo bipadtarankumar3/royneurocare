@@ -16,8 +16,7 @@ class AdminAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-
-        if(auth::user() && !Auth::user()->user_type=="admin"){
+        if (!Auth::check() || Auth::user()->user_type !== "admin") {
             return redirect()->route('login');
         }
         return $next($request);

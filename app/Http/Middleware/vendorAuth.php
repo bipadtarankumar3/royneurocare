@@ -15,7 +15,7 @@ class vendorAuth
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(!Auth::user()->user_type=="vendor"){
+        if (!Auth::check() || Auth::user()->user_type !== "vendor") {
             return redirect()->route('vendor.login');
         }
         return $next($request);
