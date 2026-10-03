@@ -100,11 +100,27 @@
 </head>
 <body>
 
+@php
+    $referer = request()->headers->get('referer');
+    $isAdmin = (auth()->check() && (auth()->user()->user_type == 'admin' || auth()->user()->role == 'admin')) 
+                || request('from') === 'admin' 
+                || request('ref') === 'admin'
+                || ($referer && str_contains($referer, '/admin'));
+
+    if ($isAdmin) {
+        $backUrl = ($referer && str_contains($referer, '/admin')) ? $referer : url('admin/payments');
+        $backText = 'Back to Admin';
+    } else {
+        $backUrl = 'https://royneurocare.com/appointment/';
+        $backText = 'Back to Appointment';
+    }
+@endphp
+
 <div class="container">
     <!-- Action Header -->
     <div class="d-flex justify-content-between align-items-center btn-download">
-        <a href="{{ url('/') }}" class="btn btn-outline-secondary btn-sm">
-            <i class="fa-solid fa-arrow-left me-1"></i> Back to Home
+        <a href="{{ $backUrl }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fa-solid fa-arrow-left me-1"></i> {{ $backText }}
         </a>
         <button class="btn btn-brand btn-sm px-3" onclick="window.print()">
             <i class="fa-solid fa-download me-1"></i> Download / Print Invoice
@@ -125,7 +141,7 @@
                 </div>
                 <div class="mt-2 small text-muted">
                     Ground Floor, Balaji Bhawan, Cheshire Home Road, Bariatu, Ranchi<br>
-                    Phone: +91-96317 75097 | Email: royneuro@gmail.com
+                    Phone: +91-96317 75097 | Email: royneurocare@gmail.com
                 </div>
             </div>
             <div class="text-md-end">

@@ -62,8 +62,8 @@
                       </p></div>
                   </div>
                   <div class="foot-contact-area">
-                    <div class="foot-cin-ic"><a href="mailto:royneuro@gmail.com"><i class="fa-regular fa-envelope upper-nav-ic"></i></a></div>
-                    <div class="upper-cin-text"><p>royneuro@gmail.com
+                    <div class="foot-cin-ic"><a href="mailto:royneurocare@gmail.com"><i class="fa-regular fa-envelope upper-nav-ic"></i></a></div>
+                    <div class="upper-cin-text"><p>royneurocare@gmail.com
                       </p></div>
                   </div>
                 

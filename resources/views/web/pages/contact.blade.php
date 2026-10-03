@@ -60,11 +60,11 @@
   
                   <div class="contact-box">
                     <div class="box-img">
-                      <a href="mailto:royneuro@gmail.com"><i class="fa-solid fa-envelope-circle-check contac-ic"></i></a>
+                      <a href="mailto:royneurocare@gmail.com"><i class="fa-solid fa-envelope-circle-check contac-ic"></i></a>
                     </div>
                     <div class="box-text">
                       <h1>Email-ID</h1>
-                      <p>royneuro@gmail.com</p>
+                      <p>royneurocare@gmail.com</p>
                     </div>
                   </div>
                 </div>

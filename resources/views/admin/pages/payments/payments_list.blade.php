@@ -82,7 +82,7 @@
                     <select name="status" class="form-select form-select-sm">
                         <option value="all" {{ $selected_status == 'all' ? 'selected' : '' }}>All Statuses</option>
                         <option value="success" {{ $selected_status == 'success' ? 'selected' : '' }}>Success</option>
-                        <option value="cancelled" {{ $selected_status == 'cancelled' ? 'selected' : '' }}>Cancelled</option>
+                        <option value="cancelled" {{ $selected_status == 'cancelled' ? 'selected' : '' }}>Payment Cancelled</option>
                         <option value="failed" {{ $selected_status == 'failed' ? 'selected' : '' }}>Failed</option>
                         <option value="pending" {{ $selected_status == 'pending' ? 'selected' : '' }}>Pending</option>
                     </select>
@@ -116,7 +116,7 @@
                         <th>Amount</th>
                         <th>Razorpay Details</th>
                         <th>Status</th>
-                        <th class="text-center" style="width: 120px;">Action</th>
+                        <th class="text-center" style="width: 150px;">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -161,21 +161,21 @@
                                 @if ($item->payment_status == 'success')
                                     <span class="badge bg-success px-2 py-1"><i class="mdi mdi-check me-1"></i>Success</span>
                                 @elseif ($item->payment_status == 'cancelled')
-                                    <span class="badge bg-warning text-dark px-2 py-1"><i class="mdi mdi-cancel me-1"></i>Cancelled</span>
+                                    <span class="badge bg-warning text-dark px-2 py-1"><i class="mdi mdi-cancel me-1"></i>Payment Cancelled</span>
                                 @elseif ($item->payment_status == 'failed')
                                     <span class="badge bg-danger px-2 py-1"><i class="mdi mdi-alert-circle me-1"></i>Failed</span>
                                 @else
                                     <span class="badge bg-secondary px-2 py-1">{{ ucfirst($item->payment_status ?? 'Pending') }}</span>
                                 @endif
                             </td>
-                            <td class="text-center">
+                            <td class="text-center text-nowrap">
                                 <div class="btn-group btn-group-sm">
                                     <button class="btn btn-outline-primary btn-sm" onclick="showLogDetails({{ json_encode($item) }})" title="View Log Details">
-                                        <i class="mdi mdi-eye"></i> View
+                                        <i class="mdi mdi-eye me-1"></i> View
                                     </button>
                                     @if($item->payment_status == 'success')
-                                        <a href="{{ url('invoice/' . $item->id) }}" target="_blank" class="btn btn-outline-success btn-sm" title="View Invoice">
-                                            <i class="mdi mdi-receipt"></i>
+                                        <a href="{{ url('invoice/' . $item->id) }}?from=admin" target="_blank" class="btn btn-outline-success btn-sm" title="View Invoice">
+                                            <i class="mdi mdi-file-document-outline me-1"></i> Invoice
                                         </a>
                                     @endif
                                 </div>
@@ -201,7 +201,7 @@
             <div class="modal-body p-4" id="paymentDetailsContent">
                 <!-- Injected via JavaScript -->
             </div>
-            <div class="modal-footer bg-light">
+            <div class="modal-footer bg-light" id="paymentDetailsModalFooter">
                 <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -232,11 +232,11 @@
     function showLogDetails(order) {
         let statusBadge = '';
         if (order.payment_status === 'success') {
-            statusBadge = '<span class="badge bg-success px-3 py-1">Success</span>';
+            statusBadge = '<span class="badge bg-success px-3 py-1"><i class="mdi mdi-check me-1"></i>Success</span>';
         } else if (order.payment_status === 'cancelled') {
-            statusBadge = '<span class="badge bg-warning text-dark px-3 py-1">Cancelled</span>';
+            statusBadge = '<span class="badge bg-warning text-dark px-3 py-1"><i class="mdi mdi-cancel me-1"></i>Payment Cancelled</span>';
         } else if (order.payment_status === 'failed') {
-            statusBadge = '<span class="badge bg-danger px-3 py-1">Failed</span>';
+            statusBadge = '<span class="badge bg-danger px-3 py-1"><i class="mdi mdi-alert-circle me-1"></i>Failed</span>';
         } else {
             statusBadge = '<span class="badge bg-secondary px-3 py-1">' + (order.payment_status || 'Pending') + '</span>';
         }
@@ -289,6 +289,14 @@
         `;
 
         document.getElementById('paymentDetailsContent').innerHTML = html;
+
+        let footerHtml = '';
+        if (order.payment_status === 'success') {
+            footerHtml += `<a href="{{ url('invoice') }}/${order.id}?from=admin" target="_blank" class="btn btn-success btn-sm me-auto"><i class="mdi mdi-file-document-outline me-1"></i> View Invoice</a>`;
+        }
+        footerHtml += `<button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>`;
+        document.getElementById('paymentDetailsModalFooter').innerHTML = footerHtml;
+
         let modal = new bootstrap.Modal(document.getElementById('paymentDetailsModal'));
         modal.show();
     }

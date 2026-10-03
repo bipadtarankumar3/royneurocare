@@ -517,8 +517,8 @@
                               </a>
                             </li>
                             <li>
-                              <a class="dropdown-item" href="{{ url('invoice/'.$order->id) }}" target="_blank">
-                                <i class="mdi mdi-receipt text-info me-2"></i> View Invoice
+                              <a class="dropdown-item" href="{{ url('invoice/'.$order->id) }}?from=admin" target="_blank">
+                                <i class="mdi mdi-file-document-outline text-info me-2"></i> View Invoice
                               </a>
                             </li>
                             <li>
