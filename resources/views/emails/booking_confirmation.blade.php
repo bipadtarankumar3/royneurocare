@@ -147,16 +147,6 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="label">Time Slot:</td>
-                    <td class="value">
-                        @if($timeSlot && $timeSlot->from_time && $timeSlot->to_time)
-                            {{ \Carbon\Carbon::parse($timeSlot->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($timeSlot->to_time)->format('h:i A') }}
-                        @else
-                            Slot #{{ $order->time_slot_id }}
-                        @endif
-                    </td>
-                </tr>
-                <tr>
                     <td class="label">Booking / Order ID:</td>
                     <td class="value">#{{ $order->id }}</td>
                 </tr>
@@ -228,7 +218,7 @@
                 @endif
                 <tr>
                     <td class="label">Payment Date:</td>
-                    <td class="value">{{ \Carbon\Carbon::parse($order->created_at)->format('d M Y, h:i A') }}</td>
+                    <td class="value">{{ \Carbon\Carbon::parse($order->created_at)->format('d M Y') }}</td>
                 </tr>
             </table>
 
@@ -240,7 +230,7 @@
             <!-- Important Instructions -->
             <div class="highlight-card">
                 <p><strong>&#9888; Important Patient Instructions:</strong></p>
-                <p>&bull; Please arrive at the clinic at least <strong>15–30 minutes</strong> prior to your scheduled time slot.</p>
+                <p>&bull; Please arrive at the clinic on your scheduled appointment date.</p>
                 <p>&bull; Bring any previous medical records, prescriptions, MRI/CT scans, and blood test reports.</p>
                 @if($setting && !empty($setting->clinic_phone_number))
                 <p>&bull; For any queries or rescheduling assistance, contact our clinic at <strong>{{ $setting->clinic_phone_number }}</strong>.</p>

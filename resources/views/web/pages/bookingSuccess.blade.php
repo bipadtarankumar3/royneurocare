@@ -187,18 +187,6 @@
                         </td>
                     </tr>
                     <tr>
-                        <td class="info-label">Time Slot:</td>
-                        <td class="info-value">
-                            @if ($order && $order->from_time && $order->to_time)
-                                {{ \Carbon\Carbon::parse($order->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($order->to_time)->format('h:i A') }}
-                            @elseif ($order && $order->time_slot_id)
-                                Slot #{{ $order->time_slot_id }}
-                            @else
-                                Confirmed
-                            @endif
-                        </td>
-                    </tr>
-                    <tr>
                         <td class="info-label">Gender / Age:</td>
                         <td class="info-value">
                             {{ ($order && $order->sex) ? $order->sex : 'N/A' }} / {{ ($order && $order->age) ? $order->age . ' Years' : 'N/A' }}
@@ -233,7 +221,7 @@
                     </tr>
                     <tr>
                         <td class="info-label">Payment Date:</td>
-                        <td class="info-value">{{ ($order && $order->created_at) ? \Carbon\Carbon::parse($order->created_at)->format('d M Y, h:i A') : \Carbon\Carbon::now()->format('d M Y, h:i A') }}</td>
+                        <td class="info-value">{{ ($order && $order->created_at) ? \Carbon\Carbon::parse($order->created_at)->format('d M Y') : \Carbon\Carbon::now()->format('d M Y') }}</td>
                     </tr>
                 </table>
             </div>
@@ -266,7 +254,7 @@
             <i class="fa-solid fa-circle-info text-warning me-1"></i>
             <strong>Important Patient Guidelines:</strong>
             <ul class="mb-0 mt-1 ps-3">
-                <li>Please arrive at the clinic at least 15 minutes prior to your allocated time slot.</li>
+                <li>Please arrive at the clinic on your scheduled appointment date.</li>
                 <li>Carry this receipt (printed or digital copy on your phone) along with previous medical reports/prescriptions.</li>
                 <li>Clinic Address: Ground Floor, Balaji Bhawan, Cheshire Home Road, Bariatu, Ranchi.</li>
             </ul>

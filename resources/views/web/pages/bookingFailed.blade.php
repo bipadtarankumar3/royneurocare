@@ -186,18 +186,6 @@
                             {{ ($order && $order->booking_date) ? \Carbon\Carbon::parse($order->booking_date)->format('l, d F Y') : 'N/A' }}
                         </td>
                     </tr>
-                    <tr>
-                        <td class="info-label">Selected Slot:</td>
-                        <td class="info-value">
-                            @if ($order && $order->from_time && $order->to_time)
-                                {{ \Carbon\Carbon::parse($order->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($order->to_time)->format('h:i A') }}
-                            @elseif ($order && $order->time_slot_id)
-                                Slot #{{ $order->time_slot_id }}
-                            @else
-                                N/A
-                            @endif
-                        </td>
-                    </tr>
                 </table>
             </div>
 
@@ -223,7 +211,7 @@
                     </tr>
                     <tr>
                         <td class="info-label">Attempt Date:</td>
-                        <td class="info-value">{{ ($order && $order->created_at) ? \Carbon\Carbon::parse($order->created_at)->format('d M Y, h:i A') : \Carbon\Carbon::now()->format('d M Y, h:i A') }}</td>
+                        <td class="info-value">{{ ($order && $order->created_at) ? \Carbon\Carbon::parse($order->created_at)->format('d M Y') : \Carbon\Carbon::now()->format('d M Y') }}</td>
                     </tr>
                 </table>
             </div>

@@ -147,7 +147,7 @@
             <div class="text-md-end">
                 <div class="invoice-title">RECEIPT / INVOICE</div>
                 <div class="text-muted fw-bold">Receipt #{{ $order->id }}</div>
-                <div class="small text-muted">{{ ($order && $order->created_at) ? \Carbon\Carbon::parse($order->created_at)->format('d M Y, h:i A') : \Carbon\Carbon::now()->format('d M Y, h:i A') }}</div>
+                <div class="small text-muted">{{ ($order && $order->created_at) ? \Carbon\Carbon::parse($order->created_at)->format('d M Y') : \Carbon\Carbon::now()->format('d M Y') }}</div>
                 <div class="mt-1">
                     @if($order->payment_status == 'success')
                         <span class="badge bg-success px-3 py-1">PAYMENT SUCCESS</span>
@@ -168,17 +168,13 @@
                     @if($order->alternate_mobile_no)
                         <p><span class="amount-label">Alternate Mobile:</span> {{ $order->alternate_mobile_no }}</p>
                     @endif
+                    @if(!empty($order->sex) || !empty($order->age))
+                        <p><span class="amount-label">Gender / Age:</span> {{ $order->sex ?? 'N/A' }} @if(!empty($order->age)) / {{ $order->age }} Years @endif</p>
+                    @endif
                 </div>
                 <div class="col-md-6">
                     <p><span class="amount-label">Booking Date:</span>
                         {{ $order->booking_date ? \Carbon\Carbon::parse($order->booking_date)->format('l, d M Y') : 'N/A' }}
-                    </p>
-                    <p><span class="amount-label">Time Slot:</span>
-                        @if($order->from_time && $order->to_time)
-                            {{ \Carbon\Carbon::parse($order->from_time)->format('h:i A') }} - {{ \Carbon\Carbon::parse($order->to_time)->format('h:i A') }}
-                        @else
-                            Slot #{{ $order->time_slot_id ?? 'N/A' }}
-                        @endif
                     </p>
                     @if($order->address)
                         <p><span class="amount-label">Address:</span> {{ $order->address }}</p>

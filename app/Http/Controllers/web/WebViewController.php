@@ -446,6 +446,8 @@ class WebViewController extends Controller
                 'patients.alternate_mobile_no',
                 'patients.address',
                 'patients.patient_problem',
+                'patients.age',
+                'patients.sex',
                 'time_slots.from_time',
                 'time_slots.to_time'
             )

@@ -93,18 +93,13 @@
                                         <h2>Patient Details</h2>
                                         <hr>
                                         <div class="row">
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <label class="form-label">First Name <span style="color: red">*</span></label>
                                                 <input type="text" name="first_name" placeholder="First Name" required class="form-control">
                                             </div>
-                                            <div class="col-md-4">
+                                            <div class="col-md-6">
                                                 <label class="form-label">Last Name <span style="color: red">*</span></label>
                                                 <input type="text" name="last_name" placeholder="Last Name" required class="form-control">
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label class="form-label">D.O.B (Date of Birth)</label>
-                                                <input type="date" name="dob"  class="form-control">
-                                                <small id="dob-error" class="text-danger"></small>
                                             </div>
                                         </div>
                                         <div class="row mt-3">
@@ -118,7 +113,7 @@
                                             </div>
                                             <div class="col-md-6">
                                                 <label class="form-label">Age</label>
-                                                <input type="number" name="age" placeholder="Age" class="form-control" readonly>
+                                                <input type="number" name="age" placeholder="Age" min="1" max="120" class="form-control">
                                             </div>
                                         </div>
                                         <div class="row mt-3">
@@ -297,51 +292,30 @@ $(document).ready(function () {
         this.value = this.value.replace(/[^0-9]/g, ''); // Remove non-numeric characters
     });
 
-// Auto-calculate age when DOB is selected
-$("input[name='dob']").on("change", function () {
-    let dob = new Date($(this).val());
-    let today = new Date();
-    let age = today.getFullYear() - dob.getFullYear();
-
-    // Adjust age if birthday hasn't occurred this year
-    let monthDiff = today.getMonth() - dob.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-        age--;
+    // Mobile number validation
+    function validateMobileNumber(mobile) {
+        let mobilePattern = /^[6-9]\d{9}$/; // 10-digit number starting with 6-9
+        return mobilePattern.test(mobile.trim());
     }
 
-    if (age >= 0) {
-        $("input[name='age']").val(age);
-    } else {
-        $("input[name='dob']").val(""); // Clear invalid DOB
-        $("input[name='age']").val("");
-        $("#dob-error").text("Please select a valid Date of Birth.");
-    }
-});
+    $("input[name='mobile'], input[name='alternate_mobile']").on("change", function () {
+        let mobile = $("input[name='mobile']").val();
+        let alternateMobile = $("input[name='alternate_mobile']").val();
 
-// Mobile number validation
-function validateMobileNumber(mobile) {
-    let mobilePattern = /^[6-9]\d{9}$/; // 10-digit number starting with 6-9
-    return mobilePattern.test(mobile.trim());
-}
+        if (mobile && !validateMobileNumber(mobile)) {
+            $("input[name='mobile']").val("");
+            $("#mobile-error").text("Invalid Mobile Number! Must be 10 digits and start with 6-9.");
+        } else {
+            $("#mobile-error").text("");
+        }
 
-$("input[name='mobile'], input[name='alternate_mobile']").on("change", function () {
-    let mobile = $("input[name='mobile']").val();
-    let alternateMobile = $("input[name='alternate_mobile']").val();
-
-    if (mobile && !validateMobileNumber(mobile)) {
-        $("input[name='mobile']").val("");
-        $("#mobile-error").text("Invalid Mobile Number! Must be 10 digits and start with 6-9.");
-    } else {
-        $("#mobile-error").text("");
-    }
-
-    if (alternateMobile && !validateMobileNumber(alternateMobile)) {
-        $("input[name='alternate_mobile']").val("");
-        $("#alt-mobile-error").text("Invalid Alternate Mobile Number! Must be 10 digits and start with 6-9.");
-    } else {
-        $("#alt-mobile-error").text("");
-    }
-});
+        if (alternateMobile && !validateMobileNumber(alternateMobile)) {
+            $("input[name='alternate_mobile']").val("");
+            $("#alt-mobile-error").text("Invalid Alternate Mobile Number! Must be 10 digits and start with 6-9.");
+        } else {
+            $("#alt-mobile-error").text("");
+        }
+    });
 });
 
 function payWithRazorpay(e) {
@@ -354,7 +328,7 @@ function payWithRazorpay(e) {
 
     let first_name = $("input[name='first_name']").val();
     let last_name = $("input[name='last_name']").val();
-    let dob = $("input[name='dob']").val();
+    let dob = null;
     let sex = $("select[name='sex']").val();
     let age = $("input[name='age']").val();
     let mobile_no = $("input[name='mobile_no']").val();
