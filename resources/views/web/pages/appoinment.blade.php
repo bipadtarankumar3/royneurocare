@@ -251,11 +251,11 @@
                     <span>{{ $setting->frontend_notice }}</span>
                     <span class="notice-divider">&bull;</span>
                 @endif
-                <span>For any payment-related issues, please contact our helpline at <a href="tel:+919631775097" class="notice-link"><i class="fa-solid fa-phone me-1"></i>+91-9631775097</a> or email us at <a href="mailto:royneurocare@gmail.com" class="notice-link"><i class="fa-solid fa-envelope me-1"></i>royneurocare@gmail.com</a></span>
+                <span>For any payment-related issues, please contact our helpline at <a href="tel:+919631775097" class="notice-link"><i class="fa-solid fa-phone me-1"></i>+91-9631775097</a> / <a href="tel:+919341284362" class="notice-link"><i class="fa-solid fa-phone me-1"></i>+91-9341284362</a> or email us at <a href="mailto:royneurocare@gmail.com" class="notice-link"><i class="fa-solid fa-envelope me-1"></i>royneurocare@gmail.com</a></span>
                 <span class="notice-divider">&bull;</span>
                 <span>Roy Neuro Care &bull; Complete Brain & Spine Centre, Bariatu, Ranchi</span>
                 <span class="notice-divider">&bull;</span>
-                <span>For any payment-related issues, please contact our helpline at <a href="tel:+919631775097" class="notice-link"><i class="fa-solid fa-phone me-1"></i>+91-9631775097</a> or email us at <a href="mailto:royneurocare@gmail.com" class="notice-link"><i class="fa-solid fa-envelope me-1"></i>royneurocare@gmail.com</a></span>
+                <span>For any payment-related issues, please contact our helpline at <a href="tel:+919631775097" class="notice-link"><i class="fa-solid fa-phone me-1"></i>+91-9631775097</a> / <a href="tel:+919341284362" class="notice-link"><i class="fa-solid fa-phone me-1"></i>+91-9341284362</a> or email us at <a href="mailto:royneurocare@gmail.com" class="notice-link"><i class="fa-solid fa-envelope me-1"></i>royneurocare@gmail.com</a></span>
             </div>
         </div>
     </div>
